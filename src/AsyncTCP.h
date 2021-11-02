@@ -36,6 +36,9 @@ extern "C" {
 #ifndef CONFIG_ASYNC_TCP_USE_WDT
 #define CONFIG_ASYNC_TCP_USE_WDT 1 //if enabled, adds between 33us and 200us per event
 #endif
+#ifndef CONFIG_ASYNC_TCP_QUEUESIZE
+#define CONFIG_ASYNC_TCP_QUEUESIZE 32 //if enabled, adds between 33us and 200us per event
+#endif
 #endif
 
 class AsyncClient;
