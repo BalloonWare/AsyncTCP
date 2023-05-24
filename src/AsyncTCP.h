@@ -50,6 +50,10 @@ extern "C" {
 #define CONFIG_ASYNC_TCP_STACK_SIZE 8192 * 2
 #endif
 
+#ifndef CONFIG_ASYNC_TCP_EVENT_QUEUE_SIZE
+#define CONFIG_ASYNC_TCP_EVENT_QUEUE_SIZE 32
+#endif 
+
 class AsyncClient;
 
 #define ASYNC_MAX_ACK_TIME 5000
