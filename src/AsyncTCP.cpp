@@ -241,12 +241,14 @@ static bool customTaskCreateUniversal(
 #endif
 }
 
-static bool _start_async_task(){
+static bool _start_async_task(const int32_t core,
+        const uint32_t prio, 
+        const uint32_t stack_size){
     if(!_init_async_event_queue()){
         return false;
     }
     if(!_async_service_task_handle){
-        customTaskCreateUniversal(_async_service_task, "async_tcp", CONFIG_ASYNC_TCP_STACK_SIZE, NULL, 3, &_async_service_task_handle, CONFIG_ASYNC_TCP_RUNNING_CORE);
+        customTaskCreateUniversal(_async_service_task, "async_tcp", stack_size, NULL, prio, &_async_service_task_handle, core);
         if(!_async_service_task_handle){
             return false;
         }
@@ -612,6 +614,7 @@ AsyncClient::~AsyncClient(){
     _free_closed_slot();
 }
 
+
 /*
  * Operators
  * */
@@ -697,6 +700,14 @@ void AsyncClient::onPoll(AcConnectHandler cb, void* arg){
     _poll_cb_arg = arg;
 }
 
+void AsyncClient::begin(const int32_t core,
+        const uint32_t prio, 
+        const uint32_t stack_size) {
+            _core = core;
+            _prio = prio;
+            _stack_size = stack_size;
+        }
+
 /*
  * Main Public Methods
  * */
@@ -706,9 +717,9 @@ bool AsyncClient::connect(IPAddress ip, uint16_t port){
         log_w("already connected, state %d", _pcb->state);
         return false;
     }
-    if(!_start_async_task()){
-        log_e("failed to start task");
-        return false;
+    if(!_start_async_task(_core, _prio, _stack_size)){
+      log_e("failed to start task");
+      return false;
     }
 
     ip_addr_t addr;
@@ -738,7 +749,7 @@ bool AsyncClient::connect(IPAddress ip, uint16_t port){
 bool AsyncClient::connect(const char* host, uint16_t port){
     ip_addr_t addr;
     
-    if(!_start_async_task()){
+    if(!_start_async_task(_core, _prio, _stack_size)){
       log_e("failed to start task");
       return false;
     }
@@ -1315,7 +1326,7 @@ void AsyncServer::begin(){
         return;
     }
 
-    if(!_start_async_task()){
+    if(!_start_async_task(_core, _prio, _stack_size)){
         log_e("failed to start task");
         return;
     }
@@ -1341,7 +1352,7 @@ void AsyncServer::begin(){
         return;
     }
 
-    static uint8_t backlog = 5;
+    static uint8_t backlog = CONFIG_ASYNC_TCP_BACKLOG;
     _pcb = _tcp_listen_with_backlog(_pcb, backlog);
     if (!_pcb) {
         log_e("listen_pcb == NULL");

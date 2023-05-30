@@ -36,9 +36,9 @@ extern "C" {
     #include <semphr.h>
     #include <lwip/pbuf.h>
 }
-#define CONFIG_ASYNC_TCP_RUNNING_CORE -1 //any available core
-#define CONFIG_ASYNC_TCP_USE_WDT 0
 #endif
+
+#include "AsyncTCP-config.h"
 
 //If core is not defined, then we are running in Arduino or PIO
 #ifndef CONFIG_ASYNC_TCP_RUNNING_CORE
@@ -52,7 +52,6 @@ extern "C" {
 
 class AsyncClient;
 
-#define ASYNC_MAX_ACK_TIME 5000
 #define ASYNC_WRITE_FLAG_COPY 0x01 //will allocate new buffer to hold the data while sending (else will hold reference to the data given)
 #define ASYNC_WRITE_FLAG_MORE 0x02 //will not send PSH flag, meaning that there should be more data to be sent before the application should react.
 
@@ -79,6 +78,10 @@ class AsyncClient {
     bool operator!=(const AsyncClient &other) {
       return !(*this == other);
     }
+    void begin(const int32_t core = CONFIG_ASYNC_TCP_RUNNING_CORE,
+        const uint32_t prio = CONFIG_ASYNC_TCP_PRIORITY, 
+        const uint32_t stack_size = CONFIG_ASYNC_TCP_STACK_SIZE);
+
     bool connect(IPAddress ip, uint16_t port);
     bool connect(const char* host, uint16_t port);
     void close(bool now = false);
@@ -183,6 +186,10 @@ class AsyncClient {
     uint32_t _ack_timeout;
     uint16_t _connect_port;
 
+    int32_t _core = CONFIG_ASYNC_TCP_RUNNING_CORE;
+    uint32_t _prio = CONFIG_ASYNC_TCP_PRIORITY;
+    uint32_t _stack_size = CONFIG_ASYNC_TCP_STACK_SIZE;
+
     int8_t _close();
     void _free_closed_slot();
     void _allocate_closed_slot();
@@ -214,6 +221,10 @@ class AsyncServer {
     //Do not use any of the functions below!
     static int8_t _s_accept(void *arg, tcp_pcb* newpcb, int8_t err);
     static int8_t _s_accepted(void *arg, AsyncClient* client);
+
+    int32_t _core = CONFIG_ASYNC_TCP_RUNNING_CORE;
+    uint32_t _prio = CONFIG_ASYNC_TCP_PRIORITY;
+    uint32_t _stack_size = CONFIG_ASYNC_TCP_STACK_SIZE;
 
   protected:
     uint16_t _port;
