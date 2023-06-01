@@ -191,6 +191,9 @@ static void _async_service_task(void *pvParameters){
     lwip_event_packet_t * packet = NULL;
     for (;;) {
         if(_get_async_event(&packet)){
+#ifdef ASYNC_TCP_PIN
+            digitalWrite(ASYNC_TCP_PIN, HIGH);
+#endif
 #if CONFIG_ASYNC_TCP_USE_WDT
             if(esp_task_wdt_add(NULL) != ESP_OK){
                 log_e("Failed to add async task to WDT");
@@ -201,6 +204,9 @@ static void _async_service_task(void *pvParameters){
             if(esp_task_wdt_delete(NULL) != ESP_OK){
                 log_e("Failed to remove loop task from WDT");
             }
+#endif
+#ifdef ASYNC_TCP_PIN
+            digitalWrite(ASYNC_TCP_PIN, LOW);
 #endif
         }
     }
